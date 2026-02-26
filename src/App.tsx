@@ -1,9 +1,17 @@
 import { lazy, Suspense, useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
+import { ConsoleLayout } from "@/components/layout/ConsoleLayout";
 import { FloorPlan } from "@/components/office-2d/FloorPlan";
+import { DashboardPage } from "@/components/pages/DashboardPage";
+import { ChannelsPage } from "@/components/pages/ChannelsPage";
+import { SkillsPage } from "@/components/pages/SkillsPage";
+import { CronPage } from "@/components/pages/CronPage";
+import { SettingsPage } from "@/components/pages/SettingsPage";
 import { useGatewayConnection } from "@/hooks/useGatewayConnection";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useOfficeStore } from "@/store/office-store";
+import type { PageId } from "@/gateway/types";
 
 const Scene3D = lazy(() => import("@/components/office-3d/Scene3D"));
 
@@ -65,6 +73,27 @@ function ThemeSync() {
   return null;
 }
 
+const PAGE_MAP: Record<string, PageId> = {
+  "/": "office",
+  "/dashboard": "dashboard",
+  "/channels": "channels",
+  "/skills": "skills",
+  "/cron": "cron",
+  "/settings": "settings",
+};
+
+function PageTracker() {
+  const location = useLocation();
+  const setCurrentPage = useOfficeStore((s) => s.setCurrentPage);
+
+  useEffect(() => {
+    const page = PAGE_MAP[location.pathname] ?? "office";
+    setCurrentPage(page);
+  }, [location.pathname, setCurrentPage]);
+
+  return null;
+}
+
 export function App() {
   const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || "ws://localhost:18789";
   const gatewayToken = import.meta.env.VITE_GATEWAY_TOKEN || "";
@@ -82,9 +111,20 @@ export function App() {
   return (
     <>
       <ThemeSync />
-      <AppShell wsClient={wsClient} isMobile={isMobile}>
-        <OfficeView />
-      </AppShell>
+      <PageTracker />
+      <Routes>
+        <Route element={<AppShell wsClient={wsClient} isMobile={isMobile} />}>
+          <Route path="/" element={<OfficeView />} />
+        </Route>
+        <Route element={<ConsoleLayout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/channels" element={<ChannelsPage />} />
+          <Route path="/skills" element={<SkillsPage />} />
+          <Route path="/cron" element={<CronPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   );
 }

@@ -199,6 +199,7 @@ export type ConnectionStatus =
 
 export type ViewMode = "2d" | "3d";
 export type ThemeMode = "light" | "dark";
+export type PageId = "office" | "dashboard" | "channels" | "skills" | "cron" | "settings";
 
 export type ContextMenuState = {
   agentId: string;
@@ -234,6 +235,8 @@ export interface OfficeStore {
   forceActionDialog: ForceActionDialogState;
   tokenHistory: TokenSnapshot[];
   agentCosts: Record<string, number>;
+  currentPage: PageId;
+  chatDockHeight: number;
 
   // runId → agentId 映射
   runIdMap: Map<string, string>;
@@ -276,6 +279,8 @@ export interface OfficeStore {
   closeForceActionDialog: () => void;
   pushTokenSnapshot: (snapshot: TokenSnapshot) => void;
   setAgentCosts: (costs: Record<string, number>) => void;
+  setCurrentPage: (page: PageId) => void;
+  setChatDockHeight: (height: number) => void;
 
   // 指标
   updateMetrics: () => void;

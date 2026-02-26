@@ -1,5 +1,10 @@
 import { useMemo } from "react";
-import type { ConnectionStatus, ThemeMode, ViewMode } from "@/gateway/types";
+import { useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  ArrowLeft,
+} from "lucide-react";
+import type { ConnectionStatus, ThemeMode, ViewMode, PageId } from "@/gateway/types";
 import { isWebGLAvailable } from "@/lib/webgl-detect";
 import { useOfficeStore } from "@/store/office-store";
 
@@ -10,6 +15,14 @@ const STATUS_CONFIG: Record<ConnectionStatus, { color: string; pulse: boolean; l
   disconnected: { color: "#6b7280", pulse: false, label: "未连接" },
   error: { color: "#ef4444", pulse: false, label: "连接错误" },
 };
+
+const PAGE_TITLES: Record<string, string> = {
+  dashboard: "Dashboard",
+  channels: "Channels",
+  skills: "Skills",
+  cron: "Cron Tasks",
+  settings: "Settings",
+} as const;
 
 interface TopBarProps {
   isMobile?: boolean;
@@ -23,50 +36,133 @@ export function TopBar({ isMobile = false }: TopBarProps) {
   const setViewMode = useOfficeStore((s) => s.setViewMode);
   const theme = useOfficeStore((s) => s.theme);
   const setTheme = useOfficeStore((s) => s.setTheme);
+  const currentPage = useOfficeStore((s) => s.currentPage);
 
   const webglAvailable = useMemo(() => isWebGLAvailable(), []);
   const statusCfg = STATUS_CONFIG[connectionStatus];
+  const isOfficePage = currentPage === "office";
 
   return (
     <header className="flex h-12 shrink-0 items-center border-b border-gray-200 bg-white px-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      {isOfficePage ? (
+        <OfficeTopBarContent
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          theme={theme}
+          setTheme={setTheme}
+          metrics={metrics}
+          webglAvailable={webglAvailable}
+          isMobile={isMobile}
+        />
+      ) : (
+        <ConsoleTopBarContent currentPage={currentPage} />
+      )}
+
+      <div className="ml-auto flex items-center gap-3">
+        <ConsoleMenu currentPage={currentPage} />
+        <ConnectionIndicator
+          statusCfg={statusCfg}
+          connectionError={connectionError}
+          connectionStatus={connectionStatus}
+        />
+      </div>
+    </header>
+  );
+}
+
+function OfficeTopBarContent({
+  viewMode,
+  setViewMode,
+  theme,
+  setTheme,
+  metrics,
+  webglAvailable,
+  isMobile,
+}: {
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  theme: ThemeMode;
+  setTheme: (t: ThemeMode) => void;
+  metrics: { activeAgents: number; totalAgents: number; totalTokens: number };
+  webglAvailable: boolean;
+  isMobile?: boolean;
+}) {
+  return (
+    <>
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-semibold tracking-tight text-gray-800 dark:text-gray-100">OpenClaw Office</h1>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">v0.1.0</span>
       </div>
-
-      <ViewModeSwitch
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        webglAvailable={webglAvailable}
-        isMobile={isMobile}
-      />
+      <ViewModeSwitch viewMode={viewMode} setViewMode={setViewMode} webglAvailable={webglAvailable} isMobile={isMobile} />
       <ThemeToggle theme={theme} setTheme={setTheme} />
-
       <div className="mx-8 flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-        <span>
-          活跃{" "}
-          <strong className="text-gray-800 dark:text-gray-200">
-            {metrics.activeAgents}/{metrics.totalAgents}
-          </strong>
-        </span>
-        <span>
-          Tokens <strong className="text-gray-800 dark:text-gray-200">{formatTokens(metrics.totalTokens)}</strong>
-        </span>
+        <span>活跃 <strong className="text-gray-800 dark:text-gray-200">{metrics.activeAgents}/{metrics.totalAgents}</strong></span>
+        <span>Tokens <strong className="text-gray-800 dark:text-gray-200">{formatTokens(metrics.totalTokens)}</strong></span>
       </div>
+    </>
+  );
+}
 
-      <div className="ml-auto flex items-center gap-2">
-        <div
-          className="h-2.5 w-2.5 rounded-full"
-          style={{
-            backgroundColor: statusCfg.color,
-            animation: statusCfg.pulse ? "pulse 1.5s ease-in-out infinite" : "none",
-          }}
-        />
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {connectionError && connectionStatus === "error" ? connectionError : statusCfg.label}
-        </span>
-      </div>
-    </header>
+function ConsoleTopBarContent({ currentPage }: { currentPage: PageId }) {
+  return (
+    <div className="flex items-center gap-3">
+      <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+        {PAGE_TITLES[currentPage] ?? "控制台"}
+      </h1>
+    </div>
+  );
+}
+
+function ConsoleMenu({ currentPage }: { currentPage: PageId }) {
+  const navigate = useNavigate();
+  const isInConsole = currentPage !== "office";
+
+  return (
+    <button
+      onClick={() => navigate(isInConsole ? "/" : "/dashboard")}
+      className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+        isInConsole
+          ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+          : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+      }`}
+    >
+      {isInConsole ? (
+        <>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Office</span>
+        </>
+      ) : (
+        <>
+          <LayoutDashboard className="h-4 w-4" />
+          <span className="hidden sm:inline">控制台</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+function ConnectionIndicator({
+  statusCfg,
+  connectionError,
+  connectionStatus,
+}: {
+  statusCfg: { color: string; pulse: boolean; label: string };
+  connectionError: string | null;
+  connectionStatus: ConnectionStatus;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className="h-2.5 w-2.5 rounded-full"
+        style={{
+          backgroundColor: statusCfg.color,
+          animation: statusCfg.pulse ? "pulse 1.5s ease-in-out infinite" : "none",
+        }}
+      />
+      <span className="text-sm text-gray-500 dark:text-gray-400">
+        {connectionError && connectionStatus === "error" ? connectionError : statusCfg.label}
+      </span>
+    </div>
   );
 }
 

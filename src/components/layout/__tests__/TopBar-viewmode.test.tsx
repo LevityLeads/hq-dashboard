@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import { useOfficeStore } from "@/store/office-store";
 import { TopBar } from "../TopBar";
 
@@ -7,11 +8,16 @@ vi.mock("@/lib/webgl-detect", () => ({
   isWebGLAvailable: () => true,
 }));
 
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
+
 beforeEach(() => {
   useOfficeStore.setState({
     connectionStatus: "connected",
     connectionError: null,
     viewMode: "2d",
+    currentPage: "office",
     globalMetrics: {
       activeAgents: 1,
       totalAgents: 3,
@@ -24,20 +30,20 @@ beforeEach(() => {
 
 describe("TopBar view mode switch", () => {
   it("renders 2D and 3D buttons", () => {
-    render(<TopBar />);
+    renderWithRouter(<TopBar />);
     expect(screen.getByText("2D")).toBeDefined();
     expect(screen.getByText("3D")).toBeDefined();
   });
 
   it("clicking 3D button calls setViewMode", () => {
-    render(<TopBar />);
+    renderWithRouter(<TopBar />);
     fireEvent.click(screen.getByText("3D"));
     expect(useOfficeStore.getState().viewMode).toBe("3d");
   });
 
   it("clicking 2D button when in 3D returns to 2d", () => {
     useOfficeStore.setState({ viewMode: "3d" });
-    render(<TopBar />);
+    renderWithRouter(<TopBar />);
     fireEvent.click(screen.getByText("2D"));
     expect(useOfficeStore.getState().viewMode).toBe("2d");
   });

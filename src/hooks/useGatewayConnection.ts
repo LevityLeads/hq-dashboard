@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { GatewayRpcClient } from "@/gateway/rpc-client";
+import { initAdapter } from "@/gateway/adapter-provider";
 import type {
   AgentEventPayload,
   AgentSummary,
@@ -58,6 +59,8 @@ export function useGatewayConnection({ url, token }: UseGatewayConnectionOptions
         const snapshot = ws.getSnapshot();
         const scopes = (snapshot as Record<string, unknown>)?.scopes;
         setOperatorScopes(Array.isArray(scopes) ? (scopes as string[]) : ["operator"]);
+
+        void initAdapter("ws", { wsClient: ws, rpcClient: rpc });
       }
     });
 

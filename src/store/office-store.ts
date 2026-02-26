@@ -14,6 +14,7 @@ import type {
   EventHistoryItem,
   ForceActionDialogState,
   OfficeStore,
+  PageId,
   SessionSnapshot,
   SubAgentInfo,
   ThemeMode,
@@ -28,6 +29,18 @@ import { computeMetrics } from "./metrics-reducer";
 const EVENT_HISTORY_LIMIT = 200;
 const LINK_TIMEOUT_MS = 60_000;
 const THEME_STORAGE_KEY = "openclaw-theme";
+const CHAT_DOCK_HEIGHT_KEY = "openclaw-chat-dock-height";
+const DEFAULT_CHAT_DOCK_HEIGHT = 300;
+
+function getInitialChatDockHeight(): number {
+  if (typeof window === "undefined") return DEFAULT_CHAT_DOCK_HEIGHT;
+  const stored = localStorage.getItem(CHAT_DOCK_HEIGHT_KEY);
+  if (stored) {
+    const parsed = parseInt(stored, 10);
+    if (!Number.isNaN(parsed) && parsed >= 150 && parsed <= 800) return parsed;
+  }
+  return DEFAULT_CHAT_DOCK_HEIGHT;
+}
 
 function getInitialTheme(): ThemeMode {
   if (typeof window === "undefined") {
@@ -102,6 +115,8 @@ export const useOfficeStore = create<OfficeStore>()(
     forceActionDialog: null as ForceActionDialogState,
     tokenHistory: [] as TokenSnapshot[],
     agentCosts: {} as Record<string, number>,
+    currentPage: "office" as PageId,
+    chatDockHeight: getInitialChatDockHeight(),
     runIdMap: new Map(),
     sessionKeyMap: new Map(),
 
@@ -372,6 +387,23 @@ export const useOfficeStore = create<OfficeStore>()(
       set((state) => {
         state.agentCosts = costs;
       });
+    },
+
+    setCurrentPage: (page: PageId) => {
+      set((state) => {
+        state.currentPage = page;
+      });
+    },
+
+    setChatDockHeight: (height: number) => {
+      set((state) => {
+        state.chatDockHeight = height;
+      });
+      try {
+        localStorage.setItem(CHAT_DOCK_HEIGHT_KEY, String(height));
+      } catch {
+        // localStorage unavailable
+      }
     },
 
     updateMetrics: () => {
