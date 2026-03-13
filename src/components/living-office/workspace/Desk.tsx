@@ -42,11 +42,10 @@ export function Desk({ config, status = "idle", bubble = "" }: DeskProps) {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(180deg, #172842, #0f1a2c)",
+          background: "var(--lo-glass-bg)",
           borderRadius: 20,
-          border: "1px solid rgba(255,255,255,.06)",
-          boxShadow:
-            "0 20px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06)",
+          border: "var(--lo-glass-border)",
+          boxShadow: "var(--lo-shadow)",
         }}
       />
 
@@ -60,9 +59,9 @@ export function Desk({ config, status = "idle", bubble = "" }: DeskProps) {
           height: 30,
           borderRadius: 8,
           background:
-            "linear-gradient(180deg, rgba(92,200,255,.35), rgba(92,200,255,.08))",
-          border: "1px solid rgba(92,200,255,.25)",
-          boxShadow: "0 0 24px rgba(92,200,255,.14)",
+            `linear-gradient(180deg, color-mix(in srgb, var(--lo-cyan) 35%, transparent), color-mix(in srgb, var(--lo-cyan) 8%, transparent))`,
+          border: `1px solid color-mix(in srgb, var(--lo-cyan) 25%, transparent)`,
+          boxShadow: `0 0 24px color-mix(in srgb, var(--lo-cyan) 14%, transparent)`,
         }}
       />
 
@@ -75,7 +74,7 @@ export function Desk({ config, status = "idle", bubble = "" }: DeskProps) {
           left: 10,
           bottom: 10,
           fontSize: 11,
-          color: "#e8f1ff",
+          color: "var(--lo-text)",
           fontWeight: 700,
         }}
       >

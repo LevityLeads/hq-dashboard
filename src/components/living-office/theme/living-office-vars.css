@@ -1,4 +1,6 @@
-.living-office {
+/* Dark theme (default) */
+.dark .living-office,
+.living-office[data-lo-theme="dark"] {
   --lo-bg: #0b1220;
   --lo-bg2: #111a2c;
   --lo-panel: rgba(15, 23, 42, 0.7);
@@ -25,6 +27,49 @@
   --lo-glass-border: 1px solid var(--lo-line);
   --lo-glass-blur: blur(14px);
   --lo-glass-radius: 18px;
+  --lo-app-bg: radial-gradient(circle at 20% 0%, #16233f 0%, #0b1220 38%, #070b13 100%);
+  --lo-app-overlay:
+    radial-gradient(circle at 20% 10%, rgba(92, 200, 255, 0.14), transparent 20%),
+    radial-gradient(circle at 80% 20%, rgba(143, 125, 255, 0.10), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%),
+    linear-gradient(180deg, #0c1425 0%, #09111d 100%);
+}
+
+/* Light theme */
+:root:not(.dark) .living-office,
+.living-office[data-lo-theme="light"] {
+  --lo-bg: #f0f4f8;
+  --lo-bg2: #e2e8f0;
+  --lo-panel: rgba(255, 255, 255, 0.82);
+  --lo-line: rgba(100, 116, 139, 0.2);
+  --lo-text: #1e293b;
+  --lo-muted: #64748b;
+  --lo-good: #16a34a;
+  --lo-warn: #d97706;
+  --lo-bad: #dc2626;
+  --lo-cyan: #0284c7;
+  --lo-violet: #7c3aed;
+  --lo-pink: #db2777;
+  --lo-tile: rgba(0, 0, 0, 0.03);
+  --lo-shadow: 0 24px 70px rgba(0, 0, 0, 0.1);
+  --lo-glow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.08),
+    0 0 24px rgba(2, 132, 199, 0.06);
+  --lo-glass-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.88),
+    rgba(241, 245, 249, 0.82)
+  );
+  --lo-glass-border: 1px solid var(--lo-line);
+  --lo-glass-blur: blur(14px);
+  --lo-glass-radius: 18px;
+  --lo-app-bg: radial-gradient(circle at 20% 0%, #dbeafe 0%, #f0f4f8 38%, #e2e8f0 100%);
+  --lo-app-overlay:
+    radial-gradient(circle at 20% 10%, rgba(2, 132, 199, 0.08), transparent 20%),
+    radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 22%),
+    linear-gradient(180deg, #f8fafc 0%, #f0f4f8 100%);
 }
 
 @keyframes lo-scan {
@@ -100,35 +145,56 @@
   inset: 0;
   border-radius: 30px;
   overflow: hidden;
+  border: 1px solid var(--lo-line);
+  box-shadow: var(--lo-shadow);
+  perspective: 1200px;
+}
+
+.dark .lo-world {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(92, 200, 255, 0.07),
-      transparent 40%
-    ),
+    radial-gradient(circle at 50% -10%, rgba(92, 200, 255, 0.07), transparent 40%),
     linear-gradient(180deg, #111a2c 0%, #0a101b 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    var(--lo-shadow);
-  perspective: 1200px;
+}
+
+:root:not(.dark) .lo-world {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0)),
+    radial-gradient(circle at 50% -10%, rgba(2, 132, 199, 0.05), transparent 40%),
+    linear-gradient(180deg, #e2e8f0 0%, #f0f4f8 100%);
 }
 
 .lo-office {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 52%;
+  top: 44%;
   width: 1380px;
   height: 820px;
-  transform: translate(-50%, -50%) scale(1.08) rotateX(50deg) rotateZ(-18deg);
+  transform: translate(-50%, -50%) scale(0.88) rotateX(50deg) rotateZ(-18deg);
   transform-style: preserve-3d;
 }
 
 @media (max-width: 1400px) {
   .lo-office {
-    transform: translate(-50%, -50%) scale(0.88) rotateX(50deg) rotateZ(-18deg);
+    transform: translate(-50%, -50%) scale(0.72) rotateX(50deg) rotateZ(-18deg);
   }
+}
+
+/* Floor theme variants */
+.dark .lo-floor {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.035) 2px, transparent 2px, transparent 58px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 58px),
+    linear-gradient(180deg, #1a2944, #0d1525);
+}
+
+:root:not(.dark) .lo-floor {
+  background:
+    linear-gradient(135deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.01)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.04) 1px, transparent 1px, transparent 58px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 58px),
+    linear-gradient(180deg, #dbeafe, #e2e8f0);
 }
 
 /* === Agent Character 2.5D Animations === */
@@ -327,4 +393,25 @@
 
 .lo-path-line.lo-path-fading {
   opacity: 0;
+}
+
+/* HUD ticker scroll */
+@keyframes lo-ticker-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* HUD responsive: narrow viewport — keep side-by-side, just shrink gap */
+@media (max-width: 1400px) {
+  .lo-hud-bar {
+    gap: 6px !important;
+  }
+
+  .lo-footer-bar {
+    gap: 6px !important;
+  }
 }

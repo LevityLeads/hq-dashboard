@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { ChatDialog } from "@/components/chat/ChatDialog";
 import { ChatDockBar } from "@/components/chat/ChatDockBar";
 import { RestartBanner } from "@/components/shared/RestartBanner";
@@ -28,6 +28,8 @@ export function AppShell({ children, wsClient, isMobile = false }: AppShellProps
   const selectedAgentId = useOfficeStore((s) => s.selectedAgentId);
 
   const initEventHistory = useOfficeStore((s) => s.initEventHistory);
+  const location = useLocation();
+  const isLivingOffice = location.pathname === "/living-office";
 
   useEffect(() => {
     if (isMobile) {
@@ -86,36 +88,38 @@ export function AppShell({ children, wsClient, isMobile = false }: AppShellProps
           <ChatDialog />
           <ChatDockBar />
         </main>
-        {isMobile ? (
-          <>
-            <button
-              type="button"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="fixed bottom-0 left-1/2 z-20 flex h-10 w-full max-w-xs -translate-x-1/2 items-center justify-center border-t border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
-              aria-label={
-                sidebarCollapsed ? t("sidebar.expandSidebar") : t("sidebar.collapseSidebar")
-              }
-            >
-              <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-gray-600" />
-            </button>
-            {!sidebarCollapsed && (
-              <>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSidebarCollapsed(true)}
-                  onKeyDown={(e) => e.key === "Escape" && setSidebarCollapsed(true)}
-                  className="fixed inset-0 z-30 bg-black/30"
-                  aria-label={t("sidebar.closeSidebar")}
-                />
-                <aside className="fixed inset-x-0 bottom-10 top-12 z-40 overflow-hidden rounded-t-xl border-t border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
-                  <Sidebar />
-                </aside>
-              </>
-            )}
-          </>
-        ) : (
-          <Sidebar />
+        {!isLivingOffice && (
+          isMobile ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="fixed bottom-0 left-1/2 z-20 flex h-10 w-full max-w-xs -translate-x-1/2 items-center justify-center border-t border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
+                aria-label={
+                  sidebarCollapsed ? t("sidebar.expandSidebar") : t("sidebar.collapseSidebar")
+                }
+              >
+                <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-gray-600" />
+              </button>
+              {!sidebarCollapsed && (
+                <>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSidebarCollapsed(true)}
+                    onKeyDown={(e) => e.key === "Escape" && setSidebarCollapsed(true)}
+                    className="fixed inset-0 z-30 bg-black/30"
+                    aria-label={t("sidebar.closeSidebar")}
+                  />
+                  <aside className="fixed inset-x-0 bottom-10 top-12 z-40 overflow-hidden rounded-t-xl border-t border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
+                    <Sidebar />
+                  </aside>
+                </>
+              )}
+            </>
+          ) : (
+            <Sidebar />
+          )
         )}
       </div>
     </div>
