@@ -1,5 +1,8 @@
-## ADDED Requirements
+# projection-store Specification
 
+## Purpose
+TBD - created by archiving change living-office-perception-layer. Update Purpose after archive.
+## Requirements
 ### Requirement: Agent 投影状态存储
 
 系统 SHALL 提供 `ProjectionStore` 模块（Zustand store），维护所有 Agent 的当前可视投影状态。每个 Agent 的投影 SHALL 包含：
@@ -60,3 +63,4 @@ ProjectionStore SHALL 维护场景区域的状态，包括：
 #### Scenario: 区域数据更新
 - **WHEN** 感知引擎输出 `BROADCAST_CRON` 类型的 `PerceivedEvent`
 - **THEN** ProjectionStore SHALL 更新 `cronTasks` 列表
+

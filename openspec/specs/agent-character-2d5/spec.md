@@ -1,5 +1,8 @@
-## ADDED Requirements
+# agent-character-2d5 Specification
 
+## Purpose
+TBD - created by archiving change living-office-agent-system. Update Purpose after archive.
+## Requirements
 ### Requirement: 2.5D 拟人化角色组件
 
 系统 SHALL 提供 `AgentCharacter2D5` 组件，渲染一个 34×34px 的拟人化小人。角色 SHALL 包含以下子元素（从上到下）：
@@ -72,3 +75,4 @@
 #### Scenario: Sub-agent 数量上限
 - **WHEN** 已有 3 个临时角色在项目室
 - **THEN** 第 4 个 sub-agent SHALL 仅在面板列表中显示，不额外渲染角色
+

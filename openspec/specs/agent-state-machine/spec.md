@@ -1,5 +1,8 @@
-## ADDED Requirements
+# agent-state-machine Specification
 
+## Purpose
+TBD - created by archiving change living-office-agent-system. Update Purpose after archive.
+## Requirements
 ### Requirement: 11 种可视状态定义
 
 系统 SHALL 定义 Agent 的 11 种可视状态：
@@ -84,3 +87,4 @@
 #### Scenario: 状态机可测试
 - **WHEN** 输入 `(WORKING, BLOCK_EVENT)`
 - **THEN** 函数 SHALL 返回 `{ nextState: BLOCKED, visualInstructions: { cssClass: "blocked", shouldMove: false } }`
+

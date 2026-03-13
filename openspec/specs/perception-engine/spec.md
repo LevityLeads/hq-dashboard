@@ -1,5 +1,8 @@
-## ADDED Requirements
+# perception-engine Specification
 
+## Purpose
+TBD - created by archiving change living-office-perception-layer. Update Purpose after archive.
+## Requirements
 ### Requirement: 事件分级器
 
 系统 SHALL 提供 `EventClassifier` 模块，将 `AgentEventPayload` 分类到 L0-L4 五个级别。分级规则：
@@ -136,3 +139,4 @@ interface PerceivedEvent {
 #### Scenario: 类型完整性
 - **WHEN** 感知引擎输出 `PerceivedEvent`
 - **THEN** 所有字段 SHALL 被填充，不允许 undefined（actors 和 debugRefs 允许空数组）
+

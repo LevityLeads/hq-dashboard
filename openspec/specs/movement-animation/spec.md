@@ -1,5 +1,8 @@
-## ADDED Requirements
+# movement-animation Specification
 
+## Purpose
+TBD - created by archiving change living-office-agent-system. Update Purpose after archive.
+## Requirements
 ### Requirement: CSS transition 移动系统
 
 系统 SHALL 使用 CSS `transition` 实现 Agent 角色的平滑移动。移动参数：
@@ -90,3 +93,4 @@
 #### Scenario: 坐标可用
 - **WHEN** 移动系统需要计算起终点
 - **THEN** 系统 SHALL 从 `POSITION_MAP` 读取目标区域坐标，不硬编码
+
