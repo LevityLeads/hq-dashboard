@@ -64,7 +64,8 @@ export function useDashboardGateway(url: string, token: string) {
     ws.onEvent('agent', (frame: GatewayEventFrame) => {
       const payload = frame.payload as AgentEventPayload;
       const parsed = parseAgentEvent(payload);
-      const agentId = payload.runId ?? 'unknown';
+      // Extract agentId from sessionKey ("agent:levity:discord:..." → "levity")
+      const agentId = payload.sessionKey?.split(':')[1] ?? payload.runId ?? 'unknown';
       const team = getTeamForAgent(agentId);
       const status = mapStatus(parsed.status);
 
