@@ -1,163 +1,115 @@
-import { lazy, Suspense, useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AppShell } from "@/components/layout/AppShell";
-import { ConsoleLayout } from "@/components/layout/ConsoleLayout";
-import { LivingOfficeView } from "@/components/living-office/LivingOfficeView";
-import { FloorPlan } from "@/components/office-2d/FloorPlan";
-import { AgentsPage } from "@/components/pages/AgentsPage";
-import { ChannelsPage } from "@/components/pages/ChannelsPage";
-import { CronPage } from "@/components/pages/CronPage";
-import { DashboardPage } from "@/components/pages/DashboardPage";
-import { SettingsPage } from "@/components/pages/SettingsPage";
-import { SkillsPage } from "@/components/pages/SkillsPage";
-import type { PageId } from "@/gateway/types";
-import { useGatewayConnection } from "@/hooks/useGatewayConnection";
-import { useResponsive } from "@/hooks/useResponsive";
-import { useOfficeStore } from "@/store/office-store";
-import { PerceptionEngineContext } from "@/components/living-office/hud/perception-context";
+import { Monitor } from 'lucide-react';
+import { useDashboardGateway } from '@/hooks/useDashboardGateway';
+import { useDashboardStore } from '@/store/dashboardStore';
+import { StatsBar } from '@/components/dashboard/StatsBar';
+import { TeamGrid } from '@/components/dashboard/TeamGrid';
+import { LiveFeed } from '@/components/dashboard/LiveFeed';
 
-const Scene3D = lazy(() => import("@/components/office-3d/Scene3D"));
-
-function Scene3DFallback() {
-  const { t } = useTranslation("office");
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-        <span className="text-sm text-gray-500 dark:text-gray-400">{t("loading3D")}</span>
-      </div>
-    </div>
-  );
-}
-
-function OfficeView() {
-  const viewMode = useOfficeStore((s) => s.viewMode);
-  const [fading, setFading] = useState(false);
-  const [displayMode, setDisplayMode] = useState(viewMode);
-
-  useEffect(() => {
-    if (viewMode !== displayMode) {
-      setFading(true);
-      const timer = setTimeout(() => {
-        setDisplayMode(viewMode);
-        setFading(false);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [viewMode, displayMode]);
-
-  return (
-    <div
-      className="h-full w-full transition-opacity duration-300"
-      style={{ opacity: fading ? 0 : 1, position: "relative" }}
-    >
-      {displayMode === "2d" ? (
-        <FloorPlan />
-      ) : (
-        <Suspense fallback={<Scene3DFallback />}>
-          <Scene3D />
-        </Suspense>
-      )}
-    </div>
-  );
-}
-
-function ThemeSync() {
-  const theme = useOfficeStore((s) => s.theme);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
-
-  return null;
-}
-
-const PAGE_MAP: Record<string, PageId> = {
-  "/": "office",
-  "/living-office": "office",
-  "/dashboard": "dashboard",
-  "/agents": "agents",
-  "/channels": "channels",
-  "/skills": "skills",
-  "/cron": "cron",
-  "/settings": "settings",
-};
-
-function resolveGatewayWsUrl(pathOrUrl: string, fallbackUrl: string): string {
-  const value = (pathOrUrl || "").trim();
-  if (value.startsWith("ws://") || value.startsWith("wss://")) {
-    return value;
+function resolveGatewayWsUrl(base: string): string {
+  const v = (base || '').trim();
+  if (v.startsWith('ws://') || v.startsWith('wss://')) return v + '/gateway-ws';
+  if (v.startsWith('http://') || v.startsWith('https://')) {
+    const u = new URL(v);
+    u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
+    return u.toString() + '/gateway-ws';
   }
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    const url = new URL(value);
-    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    return url.toString();
-  }
-  if (value.startsWith("/")) {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host}${value}`;
-  }
-  return fallbackUrl;
-}
-
-function PageTracker() {
-  const location = useLocation();
-  const setCurrentPage = useOfficeStore((s) => s.setCurrentPage);
-
-  useEffect(() => {
-    const page = PAGE_MAP[location.pathname] ?? "office";
-    setCurrentPage(page);
-  }, [location.pathname, setCurrentPage]);
-
-  return null;
+  return 'ws://localhost:18789/gateway-ws';
 }
 
 export function App() {
   const injected = (window as unknown as Record<string, unknown>).__OPENCLAW_CONFIG__ as
-    | { gatewayUrl?: string; gatewayToken?: string; gatewayWsPath?: string }
+    | { gatewayUrl?: string; gatewayToken?: string }
     | undefined;
-  const configuredGatewayUrl = injected?.gatewayUrl || import.meta.env.VITE_GATEWAY_URL || "ws://localhost:18789";
-  const gatewayUrl = resolveGatewayWsUrl(
-    injected?.gatewayWsPath || import.meta.env.VITE_GATEWAY_WS_PATH || "/gateway-ws",
-    configuredGatewayUrl,
-  );
-  const gatewayToken = injected?.gatewayToken || import.meta.env.VITE_GATEWAY_TOKEN || "";
-  const { isMobile } = useResponsive();
-  const setViewMode = useOfficeStore((s) => s.setViewMode);
 
-  const { wsClient, perceptionEngine } = useGatewayConnection({ url: gatewayUrl, token: gatewayToken });
+  const gatewayBase = injected?.gatewayUrl || import.meta.env.VITE_GATEWAY_URL || 'ws://localhost:18789';
+  const gatewayUrl = resolveGatewayWsUrl(gatewayBase);
+  const gatewayToken = injected?.gatewayToken || import.meta.env.VITE_GATEWAY_TOKEN || '';
 
-  useEffect(() => {
-    if (isMobile) {
-      setViewMode("2d");
-    }
-  }, [isMobile, setViewMode]);
+  useDashboardGateway(gatewayUrl, gatewayToken);
+
+  const connectionStatus = useDashboardStore(s => s.connectionStatus);
+  const activeSessions = useDashboardStore(s => s.activeSessions);
+  const globalTokens = useDashboardStore(s => s.globalTokens);
+  const errorCount = useDashboardStore(s => s.errorCount);
 
   return (
-    <PerceptionEngineContext value={perceptionEngine}>
-      <ThemeSync />
-      <PageTracker />
-      <Routes>
-        <Route element={<AppShell wsClient={wsClient} isMobile={isMobile} />}>
-          <Route path="/" element={<OfficeView />} />
-          <Route path="/living-office" element={<LivingOfficeView />} />
-        </Route>
-        <Route element={<ConsoleLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/agents" element={<AgentsPage />} />
-          <Route path="/channels" element={<ChannelsPage />} />
-          <Route path="/skills" element={<SkillsPage />} />
-          <Route path="/cron" element={<CronPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </PerceptionEngineContext>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0a0a' }}>
+      {/* Mobile gate */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0a0a0a; color: #f5f5f5; }
+
+        @keyframes pulse-ring {
+          0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+          70%  { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes slide-in-right {
+          from { transform: translateX(8px); opacity: 0; }
+          to   { transform: translateX(0);   opacity: 1; }
+        }
+        @keyframes slide-in-panel {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position:  200% center; }
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .mobile-gate { display: none; }
+        @media (max-width: 1023px) {
+          .desktop-layout { display: none !important; }
+          .mobile-gate { display: flex !important; }
+        }
+      `}</style>
+
+      {/* Mobile gate */}
+      <div className="mobile-gate" style={{
+        position: 'fixed', inset: 0, background: '#0a0a0a',
+        flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, zIndex: 100,
+      }}>
+        <Monitor size={48} color="#444" />
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 20, color: '#888', fontWeight: 600 }}>Open on desktop</h2>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#555' }}>HQ Dashboard requires a screen at least 1024px wide.</p>
+      </div>
+
+      {/* Gateway offline banner */}
+      {(connectionStatus === 'disconnected' || connectionStatus === 'error') && (
+        <div style={{
+          background: '#1a0a0a', borderBottom: '1px solid #3a1a1a',
+          padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 8,
+          fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ef4444',
+        }}>
+          <span>⚠</span>
+          Gateway offline — reconnecting...
+          <span style={{ marginLeft: 8, display: 'inline-block', width: 12, height: 12, border: '2px solid #ef4444', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        </div>
+      )}
+
+      {/* Desktop layout */}
+      <div className="desktop-layout" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        <StatsBar
+          activeSessions={activeSessions}
+          totalTokens={globalTokens}
+          errorCount={errorCount}
+          connectionStatus={connectionStatus}
+        />
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 280px', overflow: 'hidden' }}>
+          <TeamGrid />
+          <LiveFeed />
+        </div>
+      </div>
+    </div>
   );
 }
