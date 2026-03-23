@@ -12,28 +12,23 @@ export interface ParsedMessage {
   timeAgoStr: string;
 }
 
-const DISCORD_API = 'https://discord.com/api/v10';
-
 export function useDiscordHistory(channelId: string, active: boolean) {
   const [messages, setMessages] = useState<ParsedMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = import.meta.env.VITE_DISCORD_BOT_TOKEN ?? '';
-
   const fetchMessages = useCallback(async () => {
-    if (!channelId || !token || !active) return;
+    if (!channelId || !active) return;
     try {
       setLoading(true);
-      const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages?limit=20`, {
-        headers: { 'Authorization': `Bot ${token}` },
-      });
+      // Use Vercel serverless proxy to avoid CORS issues with Discord API
+      const res = await fetch(`/api/discord-messages?channelId=${channelId}&limit=20`);
       if (!res.ok) {
         setError('History unavailable');
         return;
       }
       const data = await res.json() as Array<{ id: string; content: string; timestamp: string }>;
-      // Filter only messages that have a role header
+      // Show ALL messages, not just ones with role headers
       const parsed: ParsedMessage[] = data
         .map(msg => {
           const parsedRole = parseRoleHeader(msg.content);
@@ -48,7 +43,6 @@ export function useDiscordHistory(channelId: string, active: boolean) {
             timeAgoStr: timeAgo(ts),
           };
         })
-        .filter(m => m.role !== null) // only role-header messages
         .slice(0, 5);
 
       setMessages(parsed);
@@ -58,7 +52,7 @@ export function useDiscordHistory(channelId: string, active: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [channelId, token, active]);
+  }, [channelId, active]);
 
   useEffect(() => {
     if (!active) return;

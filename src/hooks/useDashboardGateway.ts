@@ -166,7 +166,9 @@ export function useDashboardGateway(url: string, token: string) {
     ws.onEvent('agentCosts', (frame: GatewayEventFrame) => {
       const costs = frame.payload as Record<string, number> | undefined;
       if (!costs) return;
-      for (const [agentId, tokens] of Object.entries(costs)) {
+      for (const [key, tokens] of Object.entries(costs)) {
+        // Keys may be sessionKeys like "agent:teamname:discord:..." — extract agentId
+        const agentId = key.includes(':') ? key.split(':')[1] : key;
         upsertAgent(agentId, { tokenCount: typeof tokens === 'number' ? tokens : 0 });
       }
       // Recompute global tokens
