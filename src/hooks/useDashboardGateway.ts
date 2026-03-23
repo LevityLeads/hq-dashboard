@@ -127,8 +127,9 @@ export function useDashboardGateway(url: string, token: string) {
         });
       }
 
-      // Add feed event
-      if (status !== 'idle' && team) {
+      // Add feed event only on status-change streams (lifecycle + tool), NOT per-chunk assistant text
+      const isStatusChange = payload.stream === 'lifecycle' || payload.stream === 'tool';
+      if (isStatusChange && status !== 'idle' && team) {
         const feedEvent: FeedEvent = {
           id: `${agentId}-${Date.now()}-${Math.random()}`,
           teamId: team.id,
